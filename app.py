@@ -3,6 +3,9 @@ import pandas as pd
 import joblib
 import os
 import matplotlib.pyplot as plt
+import time
+
+
 
 # --------------------------------------------------
 # PAGE CONFIG
@@ -278,10 +281,28 @@ def generate_excel(dataframe):
     return buffer
 
 if st.sidebar.button("Generate Full Portfolio File"):
-    with st.spinner("Preparing Excel file..."):
-        excel_file = generate_excel(df)
 
-    st.sidebar.success("File ready for download")
+    progress_bar = st.sidebar.progress(0)
+    status_text = st.sidebar.empty()
+
+    status_text.text("🔄 Initializing export...")
+    time.sleep(0.3)
+    progress_bar.progress(10)
+
+    status_text.text("📊 Processing loan data...")
+    time.sleep(0.5)
+    progress_bar.progress(40)
+
+    status_text.text("📝 Writing Excel file...")
+    excel_file = generate_excel(df)
+    time.sleep(0.5)
+    progress_bar.progress(80)
+
+    status_text.text("✅ Finalizing...")
+    time.sleep(0.3)
+    progress_bar.progress(100)
+
+    status_text.text("🎉 File ready!")
 
     st.sidebar.download_button(
         label="⬇️ Download Excel",
