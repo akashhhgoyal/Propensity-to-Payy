@@ -284,25 +284,41 @@ if st.sidebar.button("Generate Full Portfolio File"):
 
     progress_bar = st.sidebar.progress(0)
     status_text = st.sidebar.empty()
+    eta_text = st.sidebar.empty()
 
-    status_text.text("🔄 Initializing export...")
-    time.sleep(0.3)
-    progress_bar.progress(10)
+    start_time = time.time()
 
-    status_text.text("📊 Processing loan data...")
-    time.sleep(0.5)
-    progress_bar.progress(40)
+    def update_progress(pct, message):
+        elapsed = time.time() - start_time
+        eta = int((elapsed / pct) * (100 - pct)) if pct > 0 else 0
 
-    status_text.text("📝 Writing Excel file...")
+        progress_bar.progress(pct)
+        status_text.markdown(f"**{message} ({pct}%)**")
+        eta_text.markdown(f"⏳ ETA: ~{eta} sec" if pct < 100 else " ")
+
+    # ---- Smooth animation: 0 → 30
+    for i in range(1, 31):
+        update_progress(i, "🔄 Initializing export")
+        time.sleep(0.02)
+
+    # ---- Smooth animation: 30 → 70
+    for i in range(31, 71):
+        update_progress(i, "📊 Processing loan data")
+        time.sleep(0.02)
+
+    # ---- Actual heavy work
+    update_progress(71, "📝 Writing Excel file")
     excel_file = generate_excel(df)
-    time.sleep(0.5)
-    progress_bar.progress(80)
 
-    status_text.text("✅ Finalizing...")
-    time.sleep(0.3)
+    # ---- Smooth animation: 71 → 99
+    for i in range(72, 100):
+        update_progress(i, "📝 Finalizing file")
+        time.sleep(0.02)
+
+    # ---- Completion (GREEN BAR)
     progress_bar.progress(100)
-
-    status_text.text("🎉 File ready!")
+    status_text.markdown("### 🎉 File ready (100%)")
+    eta_text.empty()
 
     st.sidebar.download_button(
         label="⬇️ Download Excel",
