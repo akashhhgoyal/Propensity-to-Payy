@@ -262,26 +262,30 @@ else:
         st.dataframe(customer_df)
 
 # --------------------------------------------------
-# EXPORT (FIXED + STABLE)
+# EXPORT (CLOUD-SAFE | NO CRASH)
 # --------------------------------------------------
+from io import BytesIO
+
 st.sidebar.markdown("---")
 st.sidebar.header("📤 Export Decisions")
 
+@st.cache_data(show_spinner=False)
+def generate_excel(dataframe):
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        dataframe.to_excel(writer, index=False, sheet_name="Decisions")
+    buffer.seek(0)
+    return buffer
+
 if st.sidebar.button("Generate Full Portfolio File"):
-    output_file = os.path.join(OUTPUT_DIR, "icc_decisions_full_portfolio.xlsx")
+    with st.spinner("Preparing Excel file..."):
+        excel_file = generate_excel(df)
 
-    with st.spinner("Generating full portfolio file..."):
-        df.to_excel(output_file, index=False)
+    st.sidebar.success("File ready for download")
 
-    st.session_state.batch_file_ready = True
-    st.session_state.batch_file_path = output_file
-    st.sidebar.success("File generated successfully")
-
-if st.session_state.batch_file_ready and st.session_state.batch_file_path:
-    with open(st.session_state.batch_file_path, "rb") as f:
-        st.sidebar.download_button(
-            label="⬇️ Download Excel",
-            data=f,
-            file_name="icc_decisions_full_portfolio.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    st.sidebar.download_button(
+        label="⬇️ Download Excel",
+        data=excel_file,
+        file_name="icc_decisions_full_portfolio.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
